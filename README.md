@@ -91,6 +91,50 @@ For assessment evidence, record a short video showing the target moving, another
 
 ## Upload the ESP8266 controller
 
+### Recommended: Arduino firmware for the Wemos ESP8266
+
+The supplied `FaceLocking-main(1).zip` contains an Arduino/AccelStepper
+implementation. The adapted firmware is:
+
+[`firmware/wemos_stepper_tachometer/wemos_stepper_tachometer.ino`](firmware/wemos_stepper_tachometer/wemos_stepper_tachometer.ino)
+
+In Arduino IDE:
+
+1. Install the ESP8266 board package.
+2. Select `LOLIN(WEMOS) D1 & mini` for a Wemos D1 mini, or
+   `NodeMCU 1.0 (ESP-12E Module)` for a NodeMCU-style ESP8266.
+3. Install `PubSubClient` and `AccelStepper` from Library Manager.
+4. Edit the Wi-Fi credentials and MQTT broker in the `.ino` file.
+5. Upload at 115200 baud and open Serial Monitor at 115200 baud.
+
+The Arduino firmware uses this wiring:
+
+- D1 / GPIO5 → ULN2003 IN1
+- D2 / GPIO4 → ULN2003 IN2
+- D5 / GPIO14 → ULN2003 IN3
+- D6 / GPIO12 → ULN2003 IN4
+
+For this Arduino profile, configure the PC tracker in PowerShell:
+
+```powershell
+$env:FACE_MOTOR_ENABLED = "true"
+$env:FACE_MQTT_BROKER = "broker.emqx.io"
+$env:FACE_MQTT_PORT = "1883"
+$env:FACE_MQTT_TOPIC = "tachometer/angle"
+$env:FACE_MOTOR_MIN_ANGLE = "0"
+$env:FACE_MOTOR_MAX_ANGLE = "180"
+$env:FACE_MOTOR_NEUTRAL_ANGLE = "90"
+.venv\Scripts\python.exe -m src.main
+```
+
+The PC and Wemos must use the same broker and topic. If using a broker on the
+PC, use the PC's LAN IP address on the Wemos—not `localhost`. The firmware
+assumes the physical pointer is at 90° when the Wemos resets; it has no limit
+switch, so do not attach the needle at an unknown position.
+
+The older `frame-step-motor/main.py` files are a separate MicroPython option;
+do not upload them with `ampy` when using the Arduino `.ino` firmware.
+
 The MicroPython firmware is in `frame-step-motor/`. Upload all three files to
 the ESP8266:
 
